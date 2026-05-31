@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register{% endblock %}
+
+{% block auth_content %}
+<div class="auth-card glass-card animate-fade-in my-5">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold" style="font-family: 'Outfit';">
+            <span class="text-primary">CREATE</span> ACCOUNT
+        </h2>
+        <p class="text-muted">Join TaskCore and start managing your team.</p>
+    </div>
+
+    <form method="POST" action="{% url 'register' %}" class="needs-validation" novalidate>
+        {% csrf_token %}
+        
+        {% if form.errors %}
+            <div class="alert alert-danger border-0 bg-opacity-10 text-white extra-small py-2 mb-4">
+                Please fix the errors below.
+            </div>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label small">First Name</label>
+                <input type="text" name="first_name" class="form-control" placeholder="John" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label small">Last Name</label>
+                <input type="text" name="last_name" class="form-control" placeholder="Doe" required>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label small">Username</label>
+            <input type="text" name="username" class="form-control" placeholder="johndoe" required>
+            {% if form.username.errors %}
+                <div class="text-danger extra-small mt-1">{{ form.username.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label small">Email Address</label>
+            <input type="email" name="email" class="form-control" placeholder="john@example.com" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label small">Password</label>
+            <input type="password" name="password" id="id_password" class="form-control" placeholder="••••••••" required>
+            <div class="progress mt-2" style="height: 4px; background: rgba(255,255,255,0.05);">
+                <div id="password-strength" class="progress-bar" role="progressbar" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label small">Confirm Password</label>
+            <input type="password" name="password_confirm" class="form-control" placeholder="••••••••" required>
+        </div>
+
+        <div class="mb-4 form-check">
+            <input type="checkbox" class="form-check-input bg-transparent border-secondary border-opacity-50" id="terms" required>
+            <label class="form-check-label small text-muted" for="terms">I agree to the <a href="#" class="text-primary">Terms of Service</a></label>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow">Create Account</button>
+    </form>
+
+    <div class="text-center mt-4">
+        <p class="text-muted small">Already have an account? <a href="{% url 'login' %}" class="text-primary fw-semibold text-decoration-none">Login here</a></p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('id_password').addEventListener('input', function(e) {
+        let val = e.target.value;
+        let strength = 0;
+        if (val.length > 5) strength += 25;
+        if (val.length > 8) strength += 25;
+        if (/[A-Z]/.test(val)) strength += 25;
+        if (/[0-9]/.test(val)) strength += 25;
+        
+        let pb = document.getElementById('password-strength');
+        pb.style.width = strength + '%';
+        if (strength < 50) pb.className = 'progress-bar bg-danger';
+        else if (strength < 75) pb.className = 'progress-bar bg-warning';
+        else pb.className = 'progress-bar bg-success';
+    });
+</script>
+{% endblock %}

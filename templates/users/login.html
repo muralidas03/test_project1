@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login{% endblock %}
+
+{% block auth_content %}
+<div class="auth-card glass-card animate-fade-in">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold" style="font-family: 'Outfit';">
+            <span class="text-primary">TASK</span><span class="text-white">CORE</span>
+        </h2>
+        <p class="text-muted">Welcome back! Please login to your account.</p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show extra-small py-2 mb-3 bg-opacity-10 border-0" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" action="{% url 'login' %}">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label for="username" class="form-label small">Username</label>
+            <div class="input-group">
+                <span class="input-group-text bg-transparent border-end-0 border-secondary border-opacity-25 text-muted"><i class="bi bi-person"></i></span>
+                <input type="text" name="username" id="username" class="form-control border-start-0" placeholder="Enter your username" required autofocus>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <label for="password" class="form-label small">Password</label>
+                <a href="#" class="extra-small text-primary text-decoration-none">Forgot password?</a>
+            </div>
+            <div class="input-group">
+                <span class="input-group-text bg-transparent border-end-0 border-secondary border-opacity-25 text-muted"><i class="bi bi-lock"></i></span>
+                <input type="password" name="password" id="password" class="form-control border-start-0" placeholder="Enter your password" required>
+            </div>
+        </div>
+
+        <div class="mb-4 form-check">
+            <input type="checkbox" class="form-check-input bg-transparent border-secondary border-opacity-50" id="remember">
+            <label class="form-check-label small text-muted" for="remember">Remember me for 30 days</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Sign In</button>
+    </form>
+
+    <div class="text-center mt-4">
+        <p class="text-muted small">Don't have an account? <a href="{% url 'register' %}" class="text-primary fw-semibold text-decoration-none">Register here</a></p>
+    </div>
+</div>
+{% endblock %}

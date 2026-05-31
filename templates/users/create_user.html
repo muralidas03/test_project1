@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row animate-fade-in justify-content-center">
+    <div class="col-lg-8">
+        <div class="glass-card p-5">
+            <div class="mb-5 d-flex align-items-center justify-content-between">
+                <div>
+                    <h4 class="fw-bold mb-1">Create User Account</h4>
+                    <p class="text-muted small mb-0">Fill in the details to set up a new team member.</p>
+                </div>
+                <i class="bi bi-person-plus text-primary fs-1"></i>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <h6 class="text-uppercase text-muted extra-small fw-bold mb-4" style="letter-spacing: 0.1em;">Authentication Info</h6>
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small">Username *</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}<div class="text-danger extra-small">{{ form.username.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small">Initial Password *</label>
+                        <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small">First Name</label>
+                        {{ form.first_name }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small">Last Name</label>
+                        {{ form.last_name }}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small">Email Address *</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}<div class="text-danger extra-small">{{ form.email.errors.0 }}</div>{% endif %}
+                </div>
+
+                <h6 class="text-uppercase text-muted extra-small fw-bold mb-4 mt-5" style="letter-spacing: 0.1em;">Professional Profile</h6>
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small">Role Assignment</label>
+                        {{ profile_form.role }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small">Account Status</label>
+                        {{ profile_form.status }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small">Department</label>
+                        {{ profile_form.department }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small">Designation</label>
+                        {{ profile_form.designation }}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small">Phone Number</label>
+                    {{ profile_form.phone }}
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small">Profile Picture</label>
+                    {{ profile_form.profile_picture }}
+                </div>
+
+                <div class="mb-5">
+                    <label class="form-label small">Biography / Notes</label>
+                    {{ profile_form.bio }}
+                </div>
+
+                <div class="d-flex justify-content-between pt-3">
+                    <a href="{% url 'user_list' %}" class="btn btn-link text-white text-decoration-none">Cancel</a>
+                    <button type="submit" class="btn btn-primary px-5 fw-bold shadow">Create User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Styling Django Form Widgets to match our UI */
+    .glass-card input[type="text"], 
+    .glass-card input[type="email"], 
+    .glass-card input[type="password"],
+    .glass-card select,
+    .glass-card textarea {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--glass-border);
+        color: white;
+        border-radius: 8px;
+        padding: 0.6rem 1rem;
+        width: 100%;
+    }
+    .glass-card input:focus, .glass-card select:focus, .glass-card textarea:focus {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: #667eea;
+        outline: none;
+        box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+    }
+</style>
+{% endblock %}

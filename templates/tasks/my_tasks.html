@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Assignments{% endblock %}
+{% block page_title %}My Workforce Dashboard{% endblock %}
+
+{% block content %}
+<div class="animate-fade-in">
+    <!-- Stats Overview -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="glass-card stat-card">
+                <div class="icon-box bg-primary bg-opacity-20 text-primary">
+                    <i class="bi bi-list-task"></i>
+                </div>
+                <h3 class="fw-bold text-white mb-0">{{ stats.total }}</h3>
+                <p class="text-muted extra-small text-uppercase mb-0">Total Assigned</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card stat-card">
+                <div class="icon-box bg-warning bg-opacity-20 text-warning">
+                    <i class="bi bi-hourglass-split"></i>
+                </div>
+                <h3 class="fw-bold text-white mb-0">{{ stats.pending }}</h3>
+                <p class="text-muted extra-small text-uppercase mb-0">Pending</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card stat-card">
+                <div class="icon-box bg-info bg-opacity-20 text-info">
+                    <i class="bi bi-play-circle"></i>
+                </div>
+                <h3 class="fw-bold text-white mb-0">{{ stats.in_progress }}</h3>
+                <p class="text-muted extra-small text-uppercase mb-0">In Progress</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card stat-card">
+                <div class="icon-box bg-success bg-opacity-20 text-success">
+                    <i class="bi bi-check2-all"></i>
+                </div>
+                <h3 class="fw-bold text-white mb-0">{{ stats.completed }}</h3>
+                <p class="text-muted extra-small text-uppercase mb-0">Completed</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task List -->
+    <div class="glass-card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-10">
+            <h5 class="fw-bold mb-0">Task Ledger</h5>
+            <div class="d-flex gap-2">
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-secondary bg-secondary bg-opacity-25 border-0 text-white dropdown-toggle px-3" data-bs-toggle="dropdown">
+                        Filter Status
+                    </button>
+                    <ul class="dropdown-menu glass-card border-0 shadow">
+                        <li><a class="dropdown-item py-2 small" href="{% url 'my_tasks' %}">All Tasks</a></li>
+                        <li><a class="dropdown-item py-2 small" href="?status=pending">Pending</a></li>
+                        <li><a class="dropdown-item py-2 small" href="?status=in_progress">In Progress</a></li>
+                        <li><a class="dropdown-item py-2 small" href="?status=completed">Completed</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr class="extra-small text-muted">
+                        <th class="ps-0">Task Definition</th>
+                        <th>Hierarchy</th>
+                        <th>Created By</th>
+                        <th>Status</th>
+                        <th class="text-end pe-0">Deadline</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in tasks %}
+                    <tr>
+                        <td class="ps-0 bg-transparent">
+                            <a href="{% url 'task_detail' task.id %}" class="text-white text-decoration-none fw-bold d-block">{{ task.title }}</a>
+                            <span class="extra-small text-muted">Last updated {{ task.updated_at|timesince }} ago</span>
+                        </td>
+                        <td class="bg-transparent">
+                            <span class="badge-status badge-{{ task.priority }}">{{ task.get_priority_display }}</span>
+                        </td>
+                        <td class="bg-transparent">
+                            <span class="small text-white opacity-75">{{ task.created_by.username }}</span>
+                        </td>
+                        <td class="bg-transparent">
+                            <span class="badge-status badge-{{ task.status }} px-3">{{ task.get_status_display }}</span>
+                        </td>
+                        <td class="text-end pe-0 bg-transparent">
+                            <div class="d-inline-block text-end">
+                                <p class="mb-0 small fw-bold {% if task.is_overdue %}text-danger{% else %}text-white{% endif %}">
+                                    {{ task.due_date|date:"d M, Y"|default:"Open-ended" }}
+                                </p>
+                                {% if task.is_overdue %}
+                                    <span class="extra-small text-danger fw-bold">OVERDUE</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted opacity-50">
+                            <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                            You have no tasks assigned in this category.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if tasks.has_other_pages %}
+        <div class="mt-4 pt-3 border-top border-white border-opacity-5 text-center">
+             <nav aria-label="Page navigation">
+                <ul class="pagination pagination-sm justify-content-center mb-0">
+                    {% if tasks.has_previous %}
+                    <li class="page-item"><a class="page-link glass-card border-0 text-white" href="?page={{ tasks.previous_page_number }}"><i class="bi bi-chevron-left"></i></a></li>
+                    {% endif %}
+                    <li class="page-item active"><span class="page-link bg-primary border-0 px-3">{{ tasks.number }}</span></li>
+                    {% if tasks.has_next %}
+                    <li class="page-item"><a class="page-link glass-card border-0 text-white" href="?page={{ tasks.next_page_number }}"><i class="bi bi-chevron-right"></i></a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

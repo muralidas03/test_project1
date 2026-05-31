@@ -1,0 +1,96 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django
+*.log
+db.sqlite3
+media/
+staticfiles/
+
+# Environment variables
+.env
+.env.*
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python distribution
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+nosetests.xml
+coverage.xml
+
+# MyPy
+.mypy_cache/
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Django migrations (optional)
+# Uncomment if you don't want to track migrations
+# */migrations/*
+# !*/migrations/__init__.py
+
+# Static files collected by collectstatic
+staticfiles/
+
+# Media uploads
+media/
+
+# MySQL dump files
+*.sql
+
+# Secret keys and certificates
+*.pem
+*.key
+*.crt
+
+# Local settings
+local_settings.py
+
+# Cache
+.cache/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Docker
+docker-compose.override.yml
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+*.tmp
+*.bak

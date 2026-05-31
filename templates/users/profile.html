@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="row animate-fade-in">
+    <div class="col-lg-4">
+        <!-- Profile Overview Card -->
+        <div class="glass-card mb-4 text-center p-4">
+            <div class="position-relative d-inline-block mb-3">
+                {% if user_profile.profile_picture %}
+                    <img src="{{ user_profile.profile_picture.url }}" class="profile-img-large shadow" alt="Profile Picture">
+                {% else %}
+                    <div class="profile-img-large bg-primary d-flex align-items-center justify-content-center text-white fs-1 shadow">
+                        {{ user.username|first|upper }}
+                    </div>
+                {% endif %}
+                <button class="btn btn-primary btn-sm position-absolute bottom-0 end-0 rounded-circle" style="width: 35px; height: 35px;" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                    <i class="bi bi-camera"></i>
+                </button>
+            </div>
+            
+            <h4 class="mb-1 fw-bold">{{ user.get_full_name|default:user.username }}</h4>
+            <p class="text-muted small mb-3">{{ user_profile.designation|default:"Member" }} • {{ user_profile.department|default:"No Department" }}</p>
+            
+            <div class="badge badge-status {% if user_profile.status == 'active' %}badge-completed{% else %}badge-low{% endif %} mb-4">
+                {{ user_profile.get_status_display }}
+            </div>
+
+            <hr class="bg-secondary opacity-25">
+
+            <div class="d-flex justify-content-around text-center mt-3">
+                <div>
+                    <h5 class="mb-0 fw-bold">{{ user.assigned_tasks.count }}</h5>
+                    <p class="extra-small text-muted mb-0">Total Tasks</p>
+                </div>
+                <div>
+                    <h5 class="mb-0 fw-bold">{{ user.assigned_tasks.filter.status|default_if_none:'0' }}</h5>
+                    <p class="extra-small text-muted mb-0">In Progress</p>
+                </div>
+                <div>
+                    <h5 class="mb-0 fw-bold">{{ user.assigned_tasks.filter.status|default_if_none:'0' }}</h5>
+                    <p class="extra-small text-muted mb-0">Completed</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Info Card -->
+        <div class="glass-card p-4">
+            <h6 class="text-uppercase text-muted extra-small fw-bold mb-4" style="letter-spacing: 0.1em;">Contact Details</h6>
+            
+            <div class="mb-3 d-flex align-items-center">
+                <i class="bi bi-envelope text-primary me-3 fs-5"></i>
+                <div>
+                    <p class="text-muted extra-small mb-0">Email Address</p>
+                    <p class="mb-0 small fw-medium">{{ user.email }}</p>
+                </div>
+            </div>
+
+            <div class="mb-3 d-flex align-items-center">
+                <i class="bi bi-telephone text-primary me-3 fs-5"></i>
+                <div>
+                    <p class="text-muted extra-small mb-0">Phone Number</p>
+                    <p class="mb-0 small fw-medium">{{ user_profile.phone|default:"Not provided" }}</p>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center">
+                <i class="bi bi-calendar-event text-primary me-3 fs-5"></i>
+                <div>
+                    <p class="text-muted extra-small mb-0">Member Since</p>
+                    <p class="mb-0 small fw-medium">{{ user.date_joined|date:"F Y" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <!-- Profile Management Tabs -->
+        <div class="glass-card mb-4 overflow-hidden">
+            <ul class="nav nav-tabs border-0 px-3 pt-3" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link border-0 text-white active" data-bs-toggle="tab" href="#edit-profile" role="tab">Edit Profile</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link border-0 text-white" data-bs-toggle="tab" href="#activity" role="tab">Recent Activity</a>
+                </li>
+            </ul>
+            
+            <div class="tab-content p-4">
+                <div class="tab-pane fade show active" id="edit-profile" role="tabpanel">
+                    <form method="POST" enctype="multipart/form-data" action="{% url 'user_profile' %}">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Phone Number</label>
+                                <input type="text" name="phone" value="{{ user_profile.phone|default:'' }}" class="form-control">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Department</label>
+                                <input type="text" name="department" value="{{ user_profile.department|default:'' }}" class="form-control">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Designation</label>
+                            <input type="text" name="designation" value="{{ user_profile.designation|default:'' }}" class="form-control">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Bio Details</label>
+                            <textarea name="bio" rows="4" class="form-control" placeholder="Tell us something about yourself...">{{ user_profile.bio|default:'' }}</textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Update Profile Picture</label>
+                            <input type="file" name="profile_picture" class="form-control">
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-primary px-5 fw-bold">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="tab-pane fade" id="activity" role="tabpanel">
+                    <div class="text-center py-5">
+                        <i class="bi bi-clock-history fs-1 text-muted opacity-25"></i>
+                        <p class="text-muted mt-3">Your recent activities will appear here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Role Permissions -->
+        <div class="glass-card p-4">
+            <h6 class="text-uppercase text-muted extra-small fw-bold mb-4" style="letter-spacing: 0.1em;">Assigned Roles & Permissions</h6>
+            <div class="d-flex flex-wrap gap-2">
+                {% if user_profile.role %}
+                    {% for perm in user_profile.role.permissions.all %}
+                        <span class="badge border border-secondary border-opacity-50 text-muted px-3 py-2 small fw-normal">
+                             <i class="bi bi-shield-check text-primary me-2"></i> {{ perm.get_permission_display }}
+                        </span>
+                    {% empty %}
+                        <p class="text-muted small">No specific permissions assigned to this role.</p>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted small">No role assigned to this account.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

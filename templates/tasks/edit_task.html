@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Task: {{ task.title }}{% endblock %}
+{% block page_title %}Modify Task{% endblock %}
+
+{% block content %}
+<div class="row animate-fade-in justify-content-center">
+    <div class="col-lg-8">
+        <div class="glass-card p-5">
+            <div class="mb-5 d-flex align-items-center justify-content-between border-bottom border-secondary border-opacity-10 pb-4">
+                <div>
+                    <h4 class="fw-bold mb-1">Edit Task Definition</h4>
+                    <p class="text-muted small mb-0">Update information and preferences for this task.</p>
+                </div>
+                <div class="text-end">
+                    <span class="badge-status badge-{{ task.status }} mb-1 d-block">{{ task.get_status_display }}</span>
+                    <span class="extra-small text-muted">ID: #{{ task.id|stringformat:"05d" }}</span>
+                </div>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label class="form-label small">Task Title *</label>
+                    <input type="text" name="title" value="{{ task.title }}" class="form-control" required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small">Detailed Description</label>
+                    <textarea name="description" rows="6" class="form-control">{{ task.description|default:'' }}</textarea>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small">Priority Level</label>
+                        <select name="priority" class="form-select">
+                            <option value="low" {% if task.priority == 'low' %}selected{% endif %}>Low</option>
+                            <option value="medium" {% if task.priority == 'medium' %}selected{% endif %}>Medium</option>
+                            <option value="high" {% if task.priority == 'high' %}selected{% endif %}>High</option>
+                            <option value="urgent" {% if task.priority == 'urgent' %}selected{% endif %}>Urgent</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small">Task Status</label>
+                        <select name="status" class="form-select">
+                            <option value="pending" {% if task.status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                            <option value="on_hold" {% if task.status == 'on_hold' %}selected{% endif %}>On Hold</option>
+                            <option value="completed" {% if task.status == 'completed' %}selected{% endif %}>Completed</option>
+                            <option value="cancelled" {% if task.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-5">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small">Assign To</label>
+                        <select name="assigned_to" class="form-select">
+                            <option value="">-- Choose team member --</option>
+                            {% for user_opt in form.fields.assigned_to.queryset %}
+                                <option value="{{ user_opt.id }}" {% if task.assigned_to_id == user_opt.id %}selected{% endif %}>{{ user_opt.get_full_name|default:user_opt.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small">Due Date & Time</label>
+                        <input type="datetime-local" name="due_date" value="{{ task.due_date|date:'Y-m-d\TH:i' }}" class="form-control">
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between pt-4">
+                    <a href="{% url 'task_detail' task.id %}" class="btn btn-link text-white text-decoration-none">Discard Changes</a>
+                    <button type="submit" class="btn btn-primary px-5 fw-bold shadow">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .glass-card input, .glass-card select, .glass-card textarea {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid var(--glass-border) !important;
+        color: white !important;
+    }
+    input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+    }
+</style>
+{% endblock %}

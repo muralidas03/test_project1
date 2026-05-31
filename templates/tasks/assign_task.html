@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Assign Task: {{ task.title }}{% endblock %}
+{% block page_title %}Resource Assignment{% endblock %}
+
+{% block content %}
+<div class="row animate-fade-in justify-content-center">
+    <div class="col-lg-6">
+        <div class="glass-card p-5">
+            <div class="text-center mb-5">
+                <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                    <i class="bi bi-person-check text-primary fs-1"></i>
+                </div>
+                <h4 class="fw-bold mb-1">Delegate Task</h4>
+                <p class="text-muted small">Select a team member to take ownership of this task.</p>
+            </div>
+
+            <div class="p-3 rounded-3 bg-white bg-opacity-5 mb-4 border border-white border-opacity-5">
+                <p class="extra-small text-muted text-uppercase fw-bold mb-1" style="letter-spacing: 0.1em;">Currently Working On</p>
+                <h6 class="text-white mb-0">{{ task.title }}</h6>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label class="form-label small">New Assignee</label>
+                    <select name="assigned_to" class="form-select bg-dark bg-opacity-25 border-secondary border-opacity-25 py-3" required>
+                        <option value="">-- Select Member --</option>
+                        {% for user_opt in form.fields.assigned_to.queryset %}
+                            <option value="{{ user_opt.id }}" {% if task.assigned_to_id == user_opt.id %}selected{% endif %}>
+                                {{ user_opt.get_full_name|default:user_opt.username }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-5">
+                    <label class="form-label small">Assignment Notes</label>
+                    <textarea name="notes" rows="3" class="form-control bg-dark bg-opacity-25 border-secondary border-opacity-25" placeholder="Reason for assignment or special instructions..."></textarea>
+                </div>
+
+                <div class="d-grid gap-2 shadow">
+                    <button type="submit" class="btn btn-primary py-3 fw-bold">Confirm Assignment</button>
+                    <a href="{% url 'task_detail' task.id %}" class="btn btn-link text-white text-decoration-none small">Cancel and Go Back</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

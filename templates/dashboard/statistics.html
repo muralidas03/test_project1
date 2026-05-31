@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}System Analysis & Reports{% endblock %}
+{% block page_title %}High-Level Analytics{% endblock %}
+
+{% block content %}
+<div class="animate-fade-in">
+    <!-- Summary Header -->
+    <div class="glass-card p-4 mb-5 border-top border-4 border-primary">
+        <div class="row align-items-center">
+            <div class="col-md-9 border-end border-white border-opacity-10">
+                <h3 class="fw-bold text-white mb-2">Platform Performance Metrics</h3>
+                <p class="text-muted small mb-0">Aggregate data visualization across all departments, roles and tasks.</p>
+            </div>
+            <div class="col-md-3 text-center">
+                <button class="btn btn-outline-primary btn-sm border-0 fw-bold" onclick="window.print()">
+                    <i class="bi bi-printer me-2"></i> Export PDF Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Visualization Grid -->
+    <div class="row g-4 mb-5">
+        <!-- Task Status Breakdown -->
+        <div class="col-lg-7">
+            <div class="glass-card p-4 h-100">
+                <h6 class="text-uppercase text-muted extra-small fw-bold mb-4" style="letter-spacing: 0.1em;">Status Distribution Analysis</h6>
+                <div class="chart-container" style="height: 350px;">
+                    <canvas id="statusAnalysisChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Priority Hierarchy -->
+        <div class="col-lg-5">
+            <div class="glass-card p-4 h-100">
+                <h6 class="text-uppercase text-muted extra-small fw-bold mb-4" style="letter-spacing: 0.1em;">Priority Concentration</h6>
+                <div class="chart-container" style="height: 350px;">
+                    <canvas id="priorityHierarchyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Productivity Leaderboard -->
+    <div class="glass-card overflow-hidden mb-5">
+        <div class="p-4 border-bottom border-white border-opacity-5">
+            <h6 class="text-uppercase text-muted extra-small fw-bold mb-0" style="letter-spacing: 0.1em;">Top Performer Efficiency Ledger</h6>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr class="extra-small text-muted">
+                        <th class="ps-4">Resource Identifier</th>
+                        <th>Workload Volume</th>
+                        <th>Resolution Rate</th>
+                        <th class="text-end pe-4">Productivity Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in user_task_summary %}
+                    <tr>
+                        <td class="ps-4 bg-transparent">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary rounded-circle p-2 me-3 small fw-bold text-white shadow-sm" style="width: 32px; height: 32px; line-height: 1;">
+                                    {{ user.username|first|upper }}
+                                </div>
+                                <div>
+                                    <p class="mb-0 small fw-bold text-white">{{ user.get_full_name|default:user.username }}</p>
+                                    <span class="extra-small text-muted">{{ user.email }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="bg-transparent">
+                            <span class="small text-white">{{ user.total_tasks }} Tasks</span>
+                        </td>
+                        <td class="bg-transparent" style="width: 250px;">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="progress flex-grow-1" style="height: 6px; background: rgba(255,255,255,0.05);">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: {% if user.total_tasks > 0 %}{{ user.completed_tasks|add:0|divisibleby:user.total_tasks|default:0 }}{% else %}0{% endif %}%"></div>
+                                </div>
+                                <span class="extra-small text-muted">{{ user.completed_tasks }} / {{ user.total_tasks }}</span>
+                            </div>
+                        </td>
+                        <td class="text-end pe-4 bg-transparent">
+                            <span class="badge bg-white bg-opacity-5 text-success extra-small px-3 border border-success border-opacity-25 fw-bold">HIGH PERFORMANCE</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="text-center py-5 text-muted small">Insufficient data to generate leaderboard.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Status Analysis Chart
+    const statusCtx = document.getElementById('statusAnalysisChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'line',
+        data: {
+            labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+            datasets: [
+                {
+                    label: 'Completed',
+                    data: [12, 19, 3, 5],
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: 'New Tasks',
+                    data: [10, 15, 8, 12],
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { labels: { color: '#94a3b8' } }
+            },
+            scales: {
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+            }
+        }
+    });
+
+    // Priority Hierarchy Chart
+    const prioCtx = document.getElementById('priorityHierarchyChart').getContext('2d');
+    new Chart(prioCtx, {
+        type: 'polarArea',
+        data: {
+            labels: ['Urgent', 'High', 'Medium', 'Low'],
+            datasets: [{
+                data: [
+                    {{ priority_wise_stats.urgent|default:0 }}, 
+                    {{ priority_wise_stats.high|default:0 }}, 
+                    {{ priority_wise_stats.medium|default:0 }}, 
+                    {{ priority_wise_stats.low|default:0 }}
+                ],
+                backgroundColor: [
+                    'rgba(239, 68, 68, 0.7)',
+                    'rgba(244, 63, 94, 0.7)',
+                    'rgba(139, 92, 246, 0.7)',
+                    'rgba(100, 116, 139, 0.7)'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { display: false } }
+            },
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } }
+            }
+        }
+    });
+</script>
+{% endblock %}

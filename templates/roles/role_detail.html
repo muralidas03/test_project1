@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Role Detail - {{ role.get_name_display }}{% endblock %}
+{% block page_title %}Role Configuration{% endblock %}
+
+{% block content %}
+<div class="row animate-fade-in">
+    <!-- Role Info -->
+    <div class="col-lg-4">
+        <div class="glass-card p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div class="rounded-3 bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                    <i class="bi bi-shield-shaded text-primary fs-2"></i>
+                </div>
+                <div class="badge-status {% if role.is_active %}badge-completed{% else %}badge-low{% endif %}">
+                    {{ role.is_active|yesno:"Active,Inactive" }}
+                </div>
+            </div>
+            
+            <h4 class="fw-bold mb-2">{{ role.get_name_display }}</h4>
+            <p class="text-muted small mb-4">{{ role.description|default:"No role description available." }}</p>
+
+            <div class="d-grid gap-2">
+                <a href="{% url 'edit_role' role.id %}" class="btn btn-primary fw-bold py-2">
+                    <i class="bi bi-pencil-square me-2"></i> Edit Definition
+                </a>
+                <a href="{% url 'manage_permissions' role.id %}" class="btn btn-secondary bg-secondary bg-opacity-25 border-0 text-white fw-bold py-2">
+                    <i class="bi bi-key me-2"></i> Edit Permissions
+                </a>
+            </div>
+        </div>
+
+        <!-- Role Stats -->
+        <div class="glass-card p-4">
+            <h6 class="text-uppercase text-muted extra-small fw-bold mb-4" style="letter-spacing: 0.1em;">Usage Summary</h6>
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <span class="text-muted small">Assigned Users</span>
+                <span class="text-white fw-bold">{{ role.users.count }}</span>
+            </div>
+            <div class="d-flex align-items-center justify-content-between">
+                <span class="text-muted small">Active Permissions</span>
+                <span class="text-white fw-bold">{{ role.get_permissions.count }}</span>
+            </div>
+            <hr class="bg-secondary opacity-25 my-4">
+            <p class="extra-small text-muted mb-0">Role created on {{ role.created_at|date:"d M Y" }}</p>
+        </div>
+    </div>
+
+    <!-- Users & Permissions Detail -->
+    <div class="col-lg-8">
+        <!-- Permissions Tab -->
+        <div class="glass-card mb-4 overflow-hidden">
+            <ul class="nav nav-tabs border-0 px-3 pt-3" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link border-0 text-white active" data-bs-toggle="tab" href="#permissions-tab" role="tab">Current Permissions</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link border-0 text-white" data-bs-toggle="tab" href="#users-tab" role="tab">Assigned Users</a>
+                </li>
+            </ul>
+            
+            <div class="tab-content">
+                <div class="tab-pane fade show active p-4" id="permissions-tab" role="tabpanel">
+                    <div class="row row-cols-1 row-cols-md-2 g-3">
+                        {% for perm in permissions %}
+                        <div class="col">
+                            <div class="d-flex align-items-center p-3 rounded bg-white bg-opacity-5 border border-white border-opacity-5">
+                                <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                                    <i class="bi bi-check2 text-primary"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 text-white fw-medium small">{{ perm.get_permission_display }}</h6>
+                                    <span class="extra-small text-muted">{{ perm.permission }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12 text-center py-4 text-muted small">No permissions currently assigned.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="tab-pane fade p-4" id="users-tab" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr class="extra-small">
+                                    <th class="ps-0 text-muted">User Name</th>
+                                    <th class="text-muted">Status</th>
+                                    <th class="text-end text-muted pe-0">Profile</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user_prof in users %}
+                                <tr>
+                                    <td class="ps-0 bg-transparent">
+                                        <div class="d-flex align-items-center">
+                                            <div class="rounded-circle bg-primary bg-opacity-25 text-primary extra-small d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                                                {{ user_prof.user.username|first|upper }}
+                                            </div>
+                                            <span class="small fw-medium text-white">{{ user_prof.user.get_full_name|default:user_prof.user.username }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="bg-transparent">
+                                        <span class="extra-small badge-status {% if user_prof.status == 'active' %}badge-completed{% else %}badge-low{% endif %}">
+                                            {{ user_prof.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-0 bg-transparent">
+                                        <a href="{% url 'user_detail' user_prof.user.id %}" class="btn btn-sm btn-link text-primary"><i class="bi bi-arrow-right-circle fs-5"></i></a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center py-4 text-muted small">No active users assigned to this role.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Task Catalog{% endblock %}
+{% block page_title %}Workspace Tasks{% endblock %}
+
+{% block content %}
+<div class="animate-fade-in">
+    <!-- Action Header -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h3 class="fw-bold mb-0">Project Roadmap</h3>
+            <p class="text-muted small">Track, manage and collaborate on project assignments.</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            {% if user.profile.is_admin or user.profile.is_manager or user.profile.is_team_lead %}
+            <a href="{% url 'create_task' %}" class="btn btn-primary px-4 fw-bold">
+                <i class="bi bi-plus-circle-fill me-2"></i> Launch New Task
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="glass-card p-4 mb-4">
+        <form method="GET" class="row g-3">
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label small">Search Tasks</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0 border-secondary border-opacity-25 text-muted"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" value="{{ request.GET.search|default:'' }}" class="form-control border-start-0" placeholder="Title or description...">
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-6">
+                <label class="form-label small">Priority</label>
+                <select name="priority" class="form-select">
+                    <option value="">All Priorities</option>
+                    <option value="low" {% if request.GET.priority == 'low' %}selected{% endif %}>Low</option>
+                    <option value="medium" {% if request.GET.priority == 'medium' %}selected{% endif %}>Medium</option>
+                    <option value="high" {% if request.GET.priority == 'high' %}selected{% endif %}>High</option>
+                    <option value="urgent" {% if request.GET.priority == 'urgent' %}selected{% endif %}>Urgent</option>
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-6">
+                <label class="form-label small">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="in_progress" {% if request.GET.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                    <option value="on_hold" {% if request.GET.status == 'on_hold' %}selected{% endif %}>On Hold</option>
+                    <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
+                </select>
+            </div>
+            {% if user.profile.is_admin or user.profile.is_manager %}
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label small">Assignee</label>
+                <select name="assigned_to" class="form-select">
+                    <option value="">All Members</option>
+                    {% for u in form.fields.assigned_to.queryset %}
+                        <option value="{{ u.id }}" {% if request.GET.assigned_to == u.id|stringformat:"s" %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% else %}
+            <div class="col-lg-3 col-md-6 d-none d-lg-block"></div>
+            {% endif %}
+            <div class="col-lg-2 col-md-12 d-grid">
+                <button type="submit" class="btn btn-secondary border-0 bg-secondary bg-opacity-25 text-white fw-bold">Apply Filters</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Task List -->
+    <div class="glass-card overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Task Information</th>
+                        <th>Hierarchy</th>
+                        <th>Assignee</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Progress / Due</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in tasks %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="bi bi-clipboard-data text-primary fs-3"></i>
+                                </div>
+                                <div style="max-width: 300px;">
+                                    <a href="{% url 'task_detail' task.id %}" class="text-white text-decoration-none fw-bold d-block text-truncate">{{ task.title }}</a>
+                                    <span class="extra-small text-muted">{{ task.description|default:"No description"|truncatechars:60 }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge-status badge-{{ task.priority }} px-3">{{ task.get_priority_display }}</span>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                {% if task.assigned_to.profile.profile_picture %}
+                                    <img src="{{ task.assigned_to.profile.profile_picture.url }}" class="rounded-circle" width="28" height="28" style="object-fit: cover;">
+                                {% else %}
+                                    <div class="rounded-circle bg-secondary bg-opacity-25 text-white extra-small d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+                                        {{ task.assigned_to.username|first|upper|default:"?" }}
+                                    </div>
+                                {% endif %}
+                                <span class="small text-white opacity-75">{{ task.assigned_to.get_full_name|default:task.assigned_to.username|default:"Unassigned" }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge-status badge-{{ task.status }} px-3">{{ task.get_status_display }}</span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="d-inline-block text-end">
+                                <p class="mb-0 small fw-bold {% if task.is_overdue %}text-danger{% else %}text-white{% endif %}">{{ task.due_date|date:"d M, Y"|default:"No deadline" }}</p>
+                                <span class="extra-small text-muted">Created {{ task.created_at|timesince }} ago</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i class="bi bi-stack fs-1 opacity-25"></i>
+                            <p class="mt-2">No tasks found in the catalog.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if tasks.has_other_pages %}
+        <div class="p-4 border-top border-secondary border-opacity-10 text-center">
+             <nav aria-label="Page navigation">
+                <ul class="pagination pagination-sm justify-content-center mb-0">
+                    {% if tasks.has_previous %}
+                        <li class="page-item"><a class="page-link glass-card border-0 text-white" href="?page={{ tasks.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"><i class="bi bi-chevron-left"></i></a></li>
+                    {% endif %}
+                    <li class="page-item active"><span class="page-link bg-primary border-0 px-3">{{ tasks.number }}</span></li>
+                    {% if tasks.has_next %}
+                        <li class="page-item"><a class="page-link glass-card border-0 text-white" href="?page={{ tasks.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"><i class="bi bi-chevron-right"></i></a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

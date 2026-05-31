@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Operational Overview{% endblock %}
+
+{% block content %}
+<div class="animate-fade-in">
+    <!-- Quick Statistics Row -->
+    <div class="row g-4 mb-5">
+        <div class="col-xl-3 col-md-6">
+            <div class="glass-card stat-card border-start border-primary border-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="icon-box bg-primary bg-opacity-20 text-primary">
+                        <i class="bi bi-layers"></i>
+                    </div>
+                    <span class="extra-small text-muted fw-bold">SYSTEM WIDE</span>
+                </div>
+                <h3 class="fw-bold text-white mb-0">{{ total_tasks }}</h3>
+                <p class="text-muted extra-small text-uppercase mb-0 tracking-wider">Total Tasks Logged</p>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="glass-card stat-card border-start border-warning border-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="icon-box bg-warning bg-opacity-20 text-warning">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <span class="extra-small text-muted fw-bold">ACTIVE</span>
+                </div>
+                <h3 class="fw-bold text-white mb-0">{{ pending_tasks|add:in_progress_tasks }}</h3>
+                <p class="text-muted extra-small text-uppercase mb-0 tracking-wider">Tasks in Pipeline</p>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="glass-card stat-card border-start border-success border-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="icon-box bg-success bg-opacity-20 text-success">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <span class="extra-small text-muted fw-bold">SUCCESS</span>
+                </div>
+                <h3 class="fw-bold text-white mb-0">{{ completed_tasks }}</h3>
+                <p class="text-muted extra-small text-uppercase mb-0 tracking-wider">Goals Achieved</p>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="glass-card stat-card border-start border-danger border-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="icon-box bg-danger bg-opacity-20 text-danger">
+                        <i class="bi bi-exclamation-octagon"></i>
+                    </div>
+                    <span class="extra-small text-muted fw-bold">CRITICAL</span>
+                </div>
+                <h3 class="fw-bold text-white mb-0">{{ overdue_tasks|default:0 }}</h3>
+                <p class="text-muted extra-small text-uppercase mb-0 tracking-wider">Overdue Items</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Role Specific Context -->
+    <div class="row g-4 mb-5">
+        {% if user_profile.is_admin %}
+        <!-- Admin Section: User Activity -->
+        <div class="col-lg-8">
+            <div class="glass-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-white border-opacity-5">
+                    <h6 class="text-uppercase text-muted extra-small fw-bold mb-0" style="letter-spacing: 0.1em;">Recent Task Logistics</h6>
+                    <a href="{% url 'task_list' %}" class="extra-small text-primary text-decoration-none fw-bold">Inspect All</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead class="extra-small text-muted">
+                            <tr>
+                                <th>Task</th>
+                                <th>Assigned To</th>
+                                <th>Priority</th>
+                                <th class="text-end">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in recent_tasks %}
+                            <tr>
+                                <td class="bg-transparent">
+                                    <p class="mb-0 small fw-medium text-white text-truncate" style="max-width: 200px;">{{ task.title }}</p>
+                                    <span class="extra-small text-muted text-opacity-75">by {{ task.created_by.username }}</span>
+                                </td>
+                                <td class="bg-transparent">
+                                    <span class="extra-small text-white opacity-75">{{ task.assigned_to.get_full_name|default:task.assigned_to.username|default:"Unassigned" }}</span>
+                                </td>
+                                <td class="bg-transparent"><span class="badge-status badge-{{ task.priority }} extra-small">{{ task.get_priority_display }}</span></td>
+                                <td class="text-end bg-transparent"><span class="badge-status badge-{{ task.status }} extra-small">{{ task.get_status_display }}</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center py-4 text-muted small">No task activity found.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="glass-card p-4 h-100">
+                <h6 class="text-uppercase text-muted extra-small fw-bold mb-4" style="letter-spacing: 0.1em;">Resource Allocation</h6>
+                <div class="chart-container">
+                    <canvas id="resourceChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        {% elif user_profile.is_manager %}
+        <!-- Manager Section: Team Focus -->
+        <div class="col-lg-12">
+            <div class="glass-card p-4 mb-4">
+                <h6 class="text-uppercase text-muted extra-small fw-bold mb-4" style="letter-spacing: 0.1em;">Team Performance Summary</h6>
+                <div class="row text-center g-4">
+                    <div class="col-md-3">
+                        <h4 class="fw-bold mb-0">{{ team_members_count }}</h4>
+                        <p class="text-muted extra-small mb-0">TOTAL MEMBERS</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="fw-bold text-success mb-0">{{ team_completed_tasks }}</h4>
+                        <p class="text-muted extra-small mb-0">TASKS DONE</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="fw-bold text-primary mb-0">{{ team_pending_tasks }}</h4>
+                        <p class="text-muted extra-small mb-0">IN BACKLOG</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="fw-bold text-warning mb-0">{{ team_tasks }}</h4>
+                        <p class="text-muted extra-small mb-0">TOTAL WORKLOAD</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="glass-card p-4">
+                <h6 class="text-uppercase text-muted extra-small fw-bold mb-3" style="letter-spacing: 0.1em;">Resource Roster</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <tbody>
+                            {% for member in team_members %}
+                            <tr>
+                                <td class="bg-transparent ps-0">
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-primary bg-opacity-25 text-primary extra-small d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                                            {{ member.user.username|first|upper }}
+                                        </div>
+                                        <span class="small fw-medium text-white">{{ member.user.get_full_name|default:member.user.username }}</span>
+                                    </div>
+                                </td>
+                                <td class="bg-transparent text-muted small">{{ member.department|default:"Standard" }}</td>
+                                <td class="bg-transparent text-end pe-0">
+                                    <span class="badge-status badge-completed extra-small">Active</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <!-- Employee/Team Lead Section: Personal Focus -->
+        <div class="col-lg-8">
+            <div class="glass-card p-4 h-100">
+                <h6 class="text-uppercase text-muted extra-small fw-bold mb-4" style="letter-spacing: 0.1em;">My Current Trajectory</h6>
+                <div class="chart-container" style="height: 250px;">
+                    <canvas id="personalChart"></canvas>
+                </div>
+                <div class="row mt-4 text-center">
+                    <div class="col-4">
+                        <h5 class="fw-bold mb-0">{{ my_pending_tasks }}</h5>
+                        <p class="extra-small text-muted mb-0">Waiting</p>
+                    </div>
+                    <div class="col-4">
+                        <h5 class="fw-bold mb-0">{{ my_in_progress_tasks }}</h5>
+                        <p class="extra-small text-muted mb-0">In Work</p>
+                    </div>
+                    <div class="col-4">
+                        <h5 class="fw-bold mb-0 text-success">{{ my_completed_tasks }}</h5>
+                        <p class="extra-small text-muted mb-0">Finished</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="glass-card p-4 h-100">
+                <h6 class="text-uppercase text-muted extra-small fw-bold mb-4" style="letter-spacing: 0.1em;">Recent Activity</h6>
+                <div class="activity-feed">
+                    {% for log in recent_activity %}
+                    <div class="mb-4 d-flex gap-3">
+                        <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;">
+                            <i class="bi bi-lightning-fill text-primary small"></i>
+                        </div>
+                        <div>
+                            <p class="mb-0 text-white extra-small fw-bold text-capitalize">{{ log.get_action_display }}</p>
+                            <p class="mb-0 extra-small text-muted">{{ log.description|truncatechars:40 }}</p>
+                            <span class="extra-small opacity-50" style="font-size: 0.65rem;">{{ log.created_at|timesince }} ago</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted small">No recent activity detected.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    {% if user_profile.is_admin %}
+    // Admin Resource Chart
+    const ctx = document.getElementById('resourceChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Low', 'Medium', 'High', 'Urgent'],
+            datasets: [{
+                data: [
+                    {{ priority_wise_stats.low|default:0 }}, 
+                    {{ priority_wise_stats.medium|default:0 }}, 
+                    {{ priority_wise_stats.high|default:0 }}, 
+                    {{ priority_wise_stats.urgent|default:0 }}
+                ],
+                backgroundColor: ['#64748b', '#8b5cf6', '#f43f5e', '#ef4444'],
+                borderWidth: 0,
+                hoverOffset: 15
+            }]
+        },
+        options: {
+            cutout: '75%',
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 }, usePointStyle: true, padding: 20 } }
+            }
+        }
+    });
+
+    {% elif not user_profile.is_manager %}
+    // Personal Progress Chart
+    const pCtx = document.getElementById('personalChart').getContext('2d');
+    new Chart(pCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Pending', 'In Progress', 'Completed', 'On Hold'],
+            datasets: [{
+                label: 'Tasks',
+                data: [{{ my_pending_tasks }}, {{ my_in_progress_tasks }}, {{ my_completed_tasks }}, 0],
+                backgroundColor: ['#f59e0b', '#3b82f6', '#10b981', '#64748b'],
+                borderRadius: 8,
+                barThickness: 30
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', stepSize: 1 } },
+                x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+    {% endif %}
+</script>
+{% endblock %}

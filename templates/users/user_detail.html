@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}User Details - {{ user_profile.user.username }}{% endblock %}
+{% block page_title %}User Management{% endblock %}
+
+{% block content %}
+<div class="row animate-fade-in">
+    <!-- Sidebar: User Info -->
+    <div class="col-lg-4">
+        <div class="glass-card p-4 text-center mb-4">
+            <div class="mb-3">
+                {% if user_profile.profile_picture %}
+                    <img src="{{ user_profile.profile_picture.url }}" class="profile-img-large shadow" alt="Profile avatar">
+                {% else %}
+                    <div class="profile-img-large bg-primary bg-opacity-25 text-primary fs-1 d-flex align-items-center justify-content-center mx-auto shadow">
+                        {{ user_profile.user.username|first|upper }}
+                    </div>
+                {% endif %}
+            </div>
+            <h4 class="fw-bold mb-1">{{ user_profile.user.get_full_name|default:user_profile.user.username }}</h4>
+            <p class="text-muted small mb-3">{{ user_profile.designation|default:"Member" }}</p>
+            
+            <div class="badge-status {% if user_profile.status == 'active' %}badge-completed{% else %}badge-low{% endif %} mb-4 mx-auto" style="width: fit-content;">
+                {{ user_profile.get_status_display }}
+            </div>
+
+            <div class="d-grid gap-2">
+                <a href="{% url 'edit_user' user_profile.user.id %}" class="btn btn-primary btn-sm fw-bold py-2">
+                    <i class="bi bi-pencil-square me-2"></i> Edit Account
+                </a>
+                <a href="{% url 'user_statistics' user_profile.user.id %}" class="btn btn-secondary bg-secondary bg-opacity-25 border-0 text-white btn-sm fw-bold py-2">
+                    <i class="bi bi-bar-chart me-2"></i> View Statistics
+                </a>
+            </div>
+        </div>
+
+        <div class="glass-card p-4">
+            <h6 class="text-uppercase text-muted extra-small fw-bold mb-4" style="letter-spacing: 0.1em;">Account Information</h6>
+            <ul class="list-unstyled mb-0">
+                <li class="mb-3 d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">Username</span>
+                    <span class="text-white small fw-medium">{{ user_profile.user.username }}</span>
+                </li>
+                <li class="mb-3 d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">Role</span>
+                    <span class="badge border border-secondary border-opacity-50 text-white small fw-normal">{{ user_profile.get_role_display }}</span>
+                </li>
+                <li class="mb-3 d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">Department</span>
+                    <span class="text-white small fw-medium">{{ user_profile.department|default:"-" }}</span>
+                </li>
+                <li class="mb-3 d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">Email</span>
+                    <span class="text-white small fw-medium">{{ user_profile.user.email }}</span>
+                </li>
+                <li class="mb-3 d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">Phone</span>
+                    <span class="text-white small fw-medium">{{ user_profile.phone|default:"-" }}</span>
+                </li>
+                <li class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">Joined</span>
+                    <span class="text-white small fw-medium">{{ user_profile.user.date_joined|date:"d M Y" }}</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Main: Tasks & History -->
+    <div class="col-lg-8">
+        <!-- Bio Card -->
+        <div class="glass-card p-4 mb-4">
+            <h6 class="text-uppercase text-muted extra-small fw-bold mb-3" style="letter-spacing: 0.1em;">Biography / Description</h6>
+            <p class="text-white small mb-0">{{ user_profile.bio|default:"No biography provided for this user." }}</p>
+        </div>
+
+        <!-- Recent Tasks Card -->
+        <div class="glass-card overflow-hidden">
+            <div class="p-4 d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-10">
+                <h6 class="text-uppercase text-muted extra-small fw-bold mb-0" style="letter-spacing: 0.1em;">Recent Assigned Tasks</h6>
+                <a href="{% url 'task_list' %}?assigned_to={{ user_profile.user.id }}" class="extra-small text-primary text-decoration-none fw-bold">View All Tasks</a>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr class="extra-small">
+                            <th class="ps-4">Task Title</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th class="text-end pe-4">Due Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for task in assigned_tasks %}
+                        <tr>
+                            <td class="ps-4">
+                                <a href="{% url 'task_detail' task.id %}" class="text-white text-decoration-none fw-medium small d-block mb-0">{{ task.title }}</a>
+                                <span class="extra-small text-muted">{{ task.created_at|date:"d M Y" }}</span>
+                            </td>
+                            <td>
+                                <span class="badge-status badge-{{ task.priority }}">{{ task.get_priority_display }}</span>
+                            </td>
+                            <td>
+                                <span class="badge-status badge-{{ task.status }}">{{ task.get_status_display }}</span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <span class="small {% if task.is_overdue %}text-danger{% else %}text-muted{% endif %}">{{ task.due_date|date:"d M Y" }}</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5 text-muted small">This user hasn't been assigned any tasks yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

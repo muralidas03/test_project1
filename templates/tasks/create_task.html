@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row animate-fade-in justify-content-center">
+    <div class="col-lg-8">
+        <div class="glass-card p-5">
+            <div class="mb-5 d-flex align-items-center justify-content-between">
+                <div>
+                    <h4 class="fw-bold mb-1">Create New Task</h4>
+                    <p class="text-muted small mb-0">Define objectives, set priority and assign ownership.</p>
+                </div>
+                <div class="bg-primary bg-opacity-10 rounded-3 p-3">
+                    <i class="bi bi-journal-plus text-primary fs-3"></i>
+                </div>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label class="form-label small">Task Title *</label>
+                    <input type="text" name="title" class="form-control" placeholder="e.g. Implement Role-Based Access Control" required>
+                    {% if form.title.errors %}<div class="text-danger extra-small">{{ form.title.errors.0 }}</div>{% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small">Detailed Description</label>
+                    <textarea name="description" rows="5" class="form-control" placeholder="Provide context, requirements and links..."></textarea>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small">Priority Level</label>
+                        <select name="priority" class="form-select">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small">Task Status</label>
+                        <select name="status" class="form-select">
+                            <option value="pending" selected>Pending</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="on_hold">On Hold</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-5">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small">Assign To (Optional)</label>
+                        <select name="assigned_to" class="form-select">
+                            <option value="">-- Choose team member --</option>
+                            {% for user in form.fields.assigned_to.queryset %}
+                                <option value="{{ user.id }}">{{ user.get_full_name|default:user.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small">Due Date & Time</label>
+                        <input type="datetime-local" name="due_date" class="form-control">
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between pt-4 border-top border-secondary border-opacity-10">
+                    <a href="{% url 'task_list' %}" class="btn btn-link text-white text-decoration-none py-2 px-4">Cancel</a>
+                    <button type="submit" class="btn btn-primary px-5 fw-bold shadow">Create Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .glass-card input, .glass-card select, .glass-card textarea {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid var(--glass-border) !important;
+        color: white !important;
+    }
+    .glass-card input:focus, .glass-card select:focus, .glass-card textarea:focus {
+        background: rgba(255, 255, 255, 0.1) !important;
+        border-color: #667eea !important;
+    }
+    /* Fixed for datetime-local icon */
+    input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+        cursor: pointer;
+    }
+</style>
+{% endblock %}

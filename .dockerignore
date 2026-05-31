@@ -1,0 +1,15 @@
+# .dockerignore
+.git
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+db.sqlite3
+.env
+static/
+media/
+*.log
+docker-compose*
+Dockerfile
+.dockerignore

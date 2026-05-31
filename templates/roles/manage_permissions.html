@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Permissions - {{ role.get_name_display }}{% endblock %}
+{% block page_title %}Security Policy{% endblock %}
+
+{% block content %}
+<div class="animate-fade-in">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <h3 class="fw-bold mb-1">Access Control: {{ role.get_name_display }}</h3>
+            <p class="text-muted small">Update functional permissions for the {{ role.name }} role.</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{% url 'role_detail' role.id %}" class="btn btn-secondary border-0 bg-secondary bg-opacity-25 text-white px-4 fw-bold">
+                <i class="bi bi-arrow-left me-2"></i> Done
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Assigned Permissions -->
+        <div class="col-lg-6">
+            <div class="glass-card p-4 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h6 class="text-uppercase text-muted extra-small fw-bold mb-0" style="letter-spacing: 0.1em;">Active Permissions</h6>
+                    <span class="badge bg-primary bg-opacity-20 text-primary">{{ assigned_permissions.count }}</span>
+                </div>
+                
+                <div class="list-group list-group-flush bg-transparent">
+                    {% for perm in assigned_permissions %}
+                    <div class="list-group-item bg-transparent border-secondary border-opacity-10 px-0 py-3 d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3">
+                                <i class="bi bi-check2 text-success"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 text-white small fw-medium">{{ perm.get_permission_display }}</h6>
+                                <span class="extra-small text-muted">{{ perm.permission }}</span>
+                            </div>
+                        </div>
+                        <form method="POST" action="{% url 'manage_permissions' role.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="permission_id" value="{{ perm.id }}">
+                            <input type="hidden" name="action" value="remove">
+                            <button type="submit" class="btn btn-sm btn-link text-danger text-decoration-none">Revoke</button>
+                        </form>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-5 text-muted small">No permissions currently assigned to this role.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Permissions -->
+        <div class="col-lg-6">
+            <div class="glass-card p-4 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h6 class="text-uppercase text-muted extra-small fw-bold mb-0" style="letter-spacing: 0.1em;">Grant New Permissions</h6>
+                </div>
+
+                <div class="list-group list-group-flush bg-transparent">
+                    {% for perm in all_permissions %}
+                        {% if perm not in assigned_permissions %}
+                        <div class="list-group-item bg-transparent border-secondary border-opacity-10 px-0 py-3 d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-white bg-opacity-5 rounded-circle p-2 me-3">
+                                    <i class="bi bi-plus-lg text-white"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 text-white small fw-medium">{{ perm.get_permission_display }}</h6>
+                                    <span class="extra-small text-muted">{{ perm.permission }}</span>
+                                </div>
+                            </div>
+                            <form method="POST" action="{% url 'manage_permissions' role.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="permission_id" value="{{ perm.id }}">
+                                <input type="hidden" name="action" value="add">
+                                <button type="submit" class="btn btn-sm btn-primary border-0 fw-bold px-3">Grant</button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if all_permissions.count == assigned_permissions.count %}
+                        <div class="text-center py-5 text-muted small">All available permissions have been granted to this role.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
